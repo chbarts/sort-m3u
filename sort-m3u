@@ -1,0 +1,2 @@
+echo '#EXTM3U'
+drop 1 | sed '/^#EXTINF/N;s/\n/\t/' | sort -k2 | uniq | tr '\t' '\n'
