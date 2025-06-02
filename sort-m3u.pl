@@ -3,12 +3,17 @@
 use strict;
 
 my $lns = "";
+my $flag = 0;
 my @arr;
 
 LINE: while (<>) {
     chomp;
     if ($_ =~ /^#EXTM3U/) {
-        print "$_\n";
+        if ($flag == 0) {
+            print "$_\n";
+            $flag = 1;
+        }
+
         next LINE;
     }
 
