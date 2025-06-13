@@ -21,7 +21,7 @@ LINE: while (<>) {
         if (length($lns) == 0) {
             $lns = $_;
         } else {
-            $lns = $lns . "\t" . $_;
+            $lns = $lns . "\n" . $_;
         }
 
         next LINE;
@@ -30,7 +30,7 @@ LINE: while (<>) {
     if (length($lns) == 0) {
         push @arr, $_;
     } else {
-        $lns = $lns . "\t" . $_;
+        $lns = $lns . "\n" . $_;
         push @arr, $lns;
         $lns = "";
     }
@@ -39,6 +39,5 @@ LINE: while (<>) {
 @arr = sort @arr;
 
 for my $i (@arr) {
-    $i =~ s{\t}{\n}g;
     print "$i\n";
 }
