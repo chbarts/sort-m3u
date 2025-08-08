@@ -11,7 +11,7 @@ my $case = 0;
 my $key = "";
 my @arr;
 
-while ((scalar @ARGV) >= 1) {
+PARSE: while ((scalar @ARGV) >= 1) {
     if (($ARGV[0] eq "-h") or ($ARGV[0] eq "--help")) {
         print "usage: sort-m3u [-u] [-t] [-c] [-k KEY] [FILES...]\n";
         print "-u means only print one of duplicate lines (uniquify output)\n";
@@ -34,9 +34,9 @@ while ((scalar @ARGV) >= 1) {
         $key = shift @ARGV;
     } elsif ($ARGV[0] eq "--") {
         shift @ARGV;
-        break;
+        last PARSE;
     } else {
-        break;
+        last PARSE;
     }
 }
 
