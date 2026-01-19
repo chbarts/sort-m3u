@@ -86,8 +86,11 @@ sub getkey { my $s = shift;
                  $res{$1} = $2;
              }
 
+             my @arr = split /\n/, $s;
+             my $url = $arr[-1];
+
              if (exists $res{$k}) {
-                 return $res{$k};
+                 return ($res{$k} . "\n" . $url);
              } else {
                  return proc($s);
              }
