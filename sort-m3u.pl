@@ -123,10 +123,10 @@ if ($uniq == 1) {
     my $lst = "";
     for my $i (@arr) {
         my @arr = split /\x00/, $i;
-        $i = $arr[0];
-        if ($i ne $lst) {
+        $c = $arr[0];
+        if ($c ne $lst) {
             print ($arr[1] . "\n");
-            $lst = $i;
+            $lst = $c;
         }
     }
 
