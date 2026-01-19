@@ -123,7 +123,7 @@ if ($uniq == 1) {
     my $lst = "";
     for my $i (@arr) {
         my @arr = split /\x00/, $i;
-        $c = $arr[0];
+        my $c = $arr[0];
         if ($c ne $lst) {
             print ($arr[1] . "\n");
             $lst = $c;
