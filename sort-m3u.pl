@@ -119,6 +119,8 @@ LINE: while (<>) {
     }
 }
 
+@arr = sort @arr;
+
 if ($uniq == 1) {
     my $lst = "";
     for my $i (@arr) {
