@@ -8,7 +8,7 @@ my $flag = 0;
 my $uniq = 0;
 my $trim = 0;
 my $case = 0;
-my $key = "";
+my $key = undef;
 my @arr;
 
 PARSE: while ((scalar @ARGV) >= 1) {
@@ -40,6 +40,55 @@ PARSE: while ((scalar @ARGV) >= 1) {
     }
 }
 
+sub proc { my $s = shift; my $res = ""; $s =~ /^#EXTINF:[^,]+,(.+)/; $res = $1; my @arr = split /\n/, $s; return ($res . " " . $arr[-1]) }
+# https://perlmaven.com/trim
+sub trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s }
+
+sub getkey { my $s = shift;
+             my $k = shift;
+             my %res;
+             $s =~ /^#EXTINF:[-0-9]+\s+(.+)/;
+             my $head = $1;
+             while ($head =~ /([-[:alnum:]]+="[^"]+")\s*(.*)/) {
+                 my $kv = $1;
+                 $head = $2;
+                 $kv =~ /([-[:alnum:]]+)="([^"]+)"/;
+                 $res{$1} = $2;
+             }
+
+             my @arr = split /\n/, $s;
+             my $url = $arr[-1];
+
+             if (exists $res{$k}) {
+                 return ($res{$k} . " " . $url);
+             } else {
+                 return proc($s);
+             }
+         }
+
+sub condition { my $s = shift;
+                my $key = shift;
+
+                if (($trim == 1) and ($case == 1) and $key) {
+                    return fc(trim(getkey($s, $key)));
+                } elsif (($trim == 1) and ($case == 1)) {
+                    return fc(trim(proc($s)));
+                } elsif (($trim == 1) and $key) {
+                    return trim(getkey($s, $key));
+                } elsif (($case == 1) and $key) {
+                    return fc(getkey($s, $key));
+                } elsif ($trim == 1) {
+                    return trim(proc($s));
+                } elsif ($case == 1) {
+                    return fc(proc($s));
+                } elsif ($key) {
+                    return getkey($s, $key);
+                } else {
+                    return proc($s);
+                }
+
+            }
+
 LINE: while (<>) {
     chomp;
     if ($_ =~ /^#EXTM3U/) {
@@ -62,69 +111,28 @@ LINE: while (<>) {
     }
 
     if (length($lns) == 0) {
-        push @arr, $_;
+        push @arr, (condition($_, $key) . "\x00" . $_);
     } else {
         $lns = $lns . "\n" . $_;
-        push @arr, $lns;
+        push @arr, (condition($lns, $key) . "\x00" . $lns);
         $lns = "";
     }
-}
-
-sub proc { my $s = shift; my $res = ""; $s =~ /^#EXTINF:[^,]+,(.+)/; $res = $1; my @arr = split /\n/, $s; return ($res . "\n" . $arr[-1]) }
-# https://perlmaven.com/trim
-sub trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s }
-
-sub getkey { my $s = shift;
-             my $k = shift;
-             my %res;
-             $s =~ /^#EXTINF:[-0-9]+\s+(.+)/;
-             my $head = $1;
-             while ($head =~ /([-[:alnum:]]+="[^"]+")\s*(.*)/) {
-                 my $kv = $1;
-                 $head = $2;
-                 $kv =~ /([-[:alnum:]]+)="([^"]+)"/;
-                 $res{$1} = $2;
-             }
-
-             my @arr = split /\n/, $s;
-             my $url = $arr[-1];
-
-             if (exists $res{$k}) {
-                 return ($res{$k} . "\n" . $url);
-             } else {
-                 return proc($s);
-             }
-         }
-
-if (($trim == 1) and ($case == 1) and (length($key) > 0)) {
-    @arr = sort { fc(trim(getkey($a, $key))) cmp fc(trim(getkey($b, $key))) } @arr;
-} elsif (($trim == 1) and ($case == 1)) {
-    @arr = sort { fc(trim(proc($a))) cmp fc(trim(proc($b))) } @arr;
-} elsif (($trim == 1) and (length($key) > 0)) {
-    @arr = sort { trim(getkey($a, $key)) cmp trim(getkey($b, $key)) } @arr;
-} elsif (($case == 1) and (length($key) > 0)) {
-    @arr = sort { fc(getkey($a, $key)) cmp fc(getkey($b, $key)) } @arr;
-} elsif ($trim == 1) {
-    @arr = sort { trim(proc($a)) cmp trim(proc($b)) } @arr;
-} elsif ($case == 1) {
-    @arr = sort { fc(proc($a)) cmp fc(proc($b)) } @arr;
-} elsif (length($key) > 0) {
-    @arr = sort { getkey($a, $key) cmp getkey($b, $key) } @arr;
-} else {
-    @arr = sort { proc($a) cmp proc($b) } @arr;
 }
 
 if ($uniq == 1) {
     my $lst = "";
     for my $i (@arr) {
+        my @arr = split /\x00/, $i;
+        $i = $arr[0];
         if ($i ne $lst) {
-            print "$i\n";
+            print ($arr[1] . "\n");
             $lst = $i;
         }
     }
 
 } else {
     for my $i (@arr) {
-        print "$i\n";
+        my @arr = split /\x00/, $i;
+        print ($arr[1] . "\n");
     }
 }
