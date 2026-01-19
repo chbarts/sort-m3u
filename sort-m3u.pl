@@ -70,7 +70,7 @@ LINE: while (<>) {
     }
 }
 
-sub proc { my $s = shift; $s =~ /^#EXTINF:[^,]+,(.+)/; return $1; }
+sub proc { my $s = shift; my $res = ""; $s =~ /^#EXTINF:[^,]+,(.+)/; $res = $1; my @arr = split /\n/, $s; return ($res . "\n" . $arr[-1]) }
 # https://perlmaven.com/trim
 sub trim { my $s = shift; $s =~ s/^\s+|\s+$//g; return $s }
 
